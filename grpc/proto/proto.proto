@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "./;proto";
+
+package pb;
+
+option optimize_for = SPEED;
+
+service Hello {
+  rpc Say (BenchmarkMessage) returns (BenchmarkMessage) {}
+}
+
+message BenchmarkMessage {
+  string msg = 1;
+}
