@@ -11,5 +11,6 @@ service Hello {
 }
 
 message BenchmarkMessage {
-  string msg = 1;
+  bytes msg = 1;
+  bytes rp = 2;
 }

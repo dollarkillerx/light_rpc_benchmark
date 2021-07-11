@@ -26,5 +26,6 @@ type Server struct{}
 
 func (s *Server) Say(ctx *light.Context, request *models.BenchmarkMessage, response *models.BenchmarkMessage) error {
 	response.Msg = fmt.Sprintf("resp: %s", request.Msg)
+	response.Rp = "ok"
 	return nil
 }
