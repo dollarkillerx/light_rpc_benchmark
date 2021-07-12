@@ -34,7 +34,7 @@ func main() {
 		close(over)
 	})
 
-	total := 100000
+	total := 1000000
 
 	summary := make([]int64, total, total)
 

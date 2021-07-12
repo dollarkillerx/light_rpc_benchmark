@@ -18,7 +18,7 @@ import (
 
 func main() {
 	log.SetFlags(log.Llongfile | log.LstdFlags)
-	client := client.NewClient(discovery.NewSimplePeerToPeer("127.0.0.1:8087", transport.TCP), client.SetCompressor(codes.GZIP), client.SetPoolSize(1), client.Trance())
+	client := client.NewClient(discovery.NewSimplePeerToPeer("127.0.0.1:8087", transport.TCP), client.SetCompressor(codes.Snappy))
 	connect, err := client.NewConnect("Server")
 	if err != nil {
 		log.Fatalln(err)
@@ -29,7 +29,7 @@ func main() {
 		close(over)
 	})
 
-	total := 100000
+	total := 1000000
 
 	summary := make([]int64, total, total)
 
@@ -45,11 +45,14 @@ func main() {
 			var response models.BenchmarkMessage
 			n := time.Now().UnixNano()
 			ctx := light.DefaultCtx()
-			ctx.SetTimeout(time.Second * 6)
+			ctx.SetTimeout(time.Second * 600)
 			err = connect.Call(ctx, "Say", &models.BenchmarkMessage{Msg: fmt.Sprintf("hello world :%d", idx)}, &response)
 			r := time.Now().UnixNano() - n
 			if err == nil {
 				suResp.Add(1)
+			}
+			if err != nil {
+				log.Println(err)
 			}
 			if response.Rp == "ok" {
 				suOK.Add(1)
