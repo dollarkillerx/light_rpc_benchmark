@@ -1,7 +1,7 @@
 # light_rpc_benchmark
 light rpc benchmark
 
-light v0.0.1 bate 全加密
+light v0.0.2 bate 全加密
 ``` 
 Send Over
 总耗时:  10356
