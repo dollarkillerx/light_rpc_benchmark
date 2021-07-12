@@ -11,3 +11,7 @@ require (
 	google.golang.org/grpc v1.39.0
 	google.golang.org/protobuf v1.26.0
 )
+
+replace (
+	github.com/dollarkillerx/light v0.0.1 => /home/wangy/workspace/light
+)

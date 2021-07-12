@@ -16,7 +16,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	err = ser.Run(server.UseTCP("0.0.0.0:8087"))
+	err = ser.Run(server.UseTCP("0.0.0.0:8087"), server.Trace())
 	if err != nil {
 		log.Fatalln(err)
 	}

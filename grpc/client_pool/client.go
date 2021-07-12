@@ -15,17 +15,22 @@ import (
 	"google.golang.org/grpc"
 )
 
+var clientPool = make(chan proto.HelloClient, poolSize)
+var poolSize = 100
 var key = []byte("58a95a8f804b49e686f651a0d3f6e631")
 
 func main() {
-	conn, e := grpc.Dial(":9001", grpc.WithInsecure()) // grpc.WithInsecure() 不安全的传输
-	if e != nil {
-		panic(e.Error())
+	for i := 0; i < poolSize; i++ {
+		conn, e := grpc.Dial(":9001", grpc.WithInsecure()) // grpc.WithInsecure() 不安全的传输
+		if e != nil {
+			panic(e.Error())
+		}
+		client := proto.NewHelloClient(conn) // 注册上去
+		clientPool <- client
 	}
-	client := proto.NewHelloClient(conn) // 注册上去
 
 	over := make(chan struct{})
-	poolFunc := async_utils.NewPoolFunc(100, func() {
+	poolFunc := async_utils.NewPoolFunc(poolSize, func() {
 		close(over)
 	})
 
@@ -42,6 +47,11 @@ func main() {
 		idx := i
 
 		poolFunc.Send(func() {
+			client := <-clientPool
+			defer func() {
+				clientPool <- client
+			}()
+
 			n := time.Now().UnixNano()
 			ctx := light.DefaultCtx()
 			ctx.SetTimeout(time.Second * 6)

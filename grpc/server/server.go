@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 
-	"github.com/dollarkillerx/light/codes"
 	"github.com/dollarkillerx/light/cryptology"
 	"github.com/dollarkillerx/light_rpc_benchmark/grpc/proto"
 	"google.golang.org/grpc"
@@ -46,22 +45,22 @@ func coding(r []byte) []byte {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	sn, _ := codes.CompressorManager.Get(codes.Snappy)
-	zip, err := sn.Zip(encrypt)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return zip
+	//sn, _ := codes.CompressorManager.Get(codes.Snappy)
+	//zip, err := sn.Zip(encrypt)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	return encrypt
 }
 
 func decoding(r []byte) []byte {
-	sn, _ := codes.CompressorManager.Get(codes.Snappy)
-	rc, err := sn.Unzip(r)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	//sn, _ := codes.CompressorManager.Get(codes.Snappy)
+	//rc, err := sn.Unzip(r)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 
-	rb, err := cryptology.AESDecrypt(key, rc)
+	rb, err := cryptology.AESDecrypt(key, r)
 	if err != nil {
 		log.Fatalln(err)
 	}

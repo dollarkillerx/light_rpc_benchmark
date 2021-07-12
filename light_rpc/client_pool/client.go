@@ -1,28 +1,28 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"github.com/dollarkillerx/light/codes"
 	"log"
 	"time"
 
 	"github.com/dollarkillerx/async_utils"
 	"github.com/dollarkillerx/light"
-	"github.com/dollarkillerx/light/cryptology"
-	"github.com/dollarkillerx/light_rpc_benchmark/grpc/proto"
+	"github.com/dollarkillerx/light/client"
+	"github.com/dollarkillerx/light/discovery"
+	"github.com/dollarkillerx/light/transport"
+	"github.com/dollarkillerx/light_rpc_benchmark/light_rpc/models"
 	"github.com/montanaflynn/stats"
 	"go.uber.org/atomic"
-	"google.golang.org/grpc"
 )
 
-var key = []byte("58a95a8f804b49e686f651a0d3f6e631")
-
 func main() {
-	conn, e := grpc.Dial(":9001", grpc.WithInsecure()) // grpc.WithInsecure() 不安全的传输
-	if e != nil {
-		panic(e.Error())
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+	client := client.NewClient(discovery.NewSimplePeerToPeer("127.0.0.1:8087", transport.TCP), client.SetPoolSize(100), client.SetCompressor(codes.RawData))
+	connect, err := client.NewConnect("Server")
+	if err != nil {
+		log.Fatalln(err)
 	}
-	client := proto.NewHelloClient(conn) // 注册上去
 
 	over := make(chan struct{})
 	poolFunc := async_utils.NewPoolFunc(100, func() {
@@ -42,27 +42,18 @@ func main() {
 		idx := i
 
 		poolFunc.Send(func() {
+			var response models.BenchmarkMessage
 			n := time.Now().UnixNano()
 			ctx := light.DefaultCtx()
 			ctx.SetTimeout(time.Second * 6)
-			// light rpc 不支持明文传输 所以加上
-			msg := "hello world"
-			resp, err := client.Say(context.TODO(), &proto.BenchmarkMessage{
-				Msg: coding([]byte(msg)),
-			})
-
+			err = connect.Call(ctx, "Say", &models.BenchmarkMessage{Msg: fmt.Sprintf("hello world :%d", idx)}, &response)
+			r := time.Now().UnixNano() - n
 			if err == nil {
 				suResp.Add(1)
-
-				r := decoding(resp.Rp)
-				decoding(resp.Msg)
-
-				if string(r) == "ok" {
-					suOK.Add(1)
-				}
 			}
-
-			r := time.Now().UnixNano() - n
+			if response.Rp == "ok" {
+				suOK.Add(1)
+			}
 			summary[idx] = r
 		})
 	}
@@ -91,32 +82,4 @@ func main() {
 	log.Printf("throughput  (TPS)    : %d\n", total*1000/int(endTime))
 	log.Printf("mean: %.f ns, median: %.f ns, max: %.f ns, min: %.f ns, p99: %.f ns\n", mean, median, max, min, p99)
 	log.Printf("mean: %d ms, median: %d ms, max: %d ms, min: %d ms, p99: %d ms\n", int64(mean/1000000), int64(median/1000000), int64(max/1000000), int64(min/1000000), int64(p99/1000000))
-}
-
-func coding(r []byte) []byte {
-	encrypt, err := cryptology.AESEncrypt(key, r)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	//sn, _ := codes.CompressorManager.Get(codes.Snappy)
-	//zip, err := sn.Zip(encrypt)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	return encrypt
-}
-
-func decoding(r []byte) []byte {
-	//sn, _ := codes.CompressorManager.Get(codes.Snappy)
-	//rc, err := sn.Unzip(r)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-
-	rb, err := cryptology.AESDecrypt(key, r)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return rb
 }
