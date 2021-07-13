@@ -48,3 +48,7 @@ go version go1.16.4 linux/amd64
 CPU: AMD Ryzen 7 5800X 8-Core Processor
 
 MEM: DDR4 32G 2666MHz
+
+![throughput](./img/barchart.png)
+
+

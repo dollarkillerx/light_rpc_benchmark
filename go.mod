@@ -8,6 +8,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/montanaflynn/stats v0.6.6
 	go.uber.org/atomic v1.8.0
+	gonum.org/v1/plot v0.9.0
 	google.golang.org/grpc v1.39.0
 	google.golang.org/protobuf v1.26.0
 )
